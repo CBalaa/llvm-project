@@ -448,9 +448,7 @@ def SIFIVE_X180 : RISCVProcessorModel<"sifive-x180",
                                        FeatureStdExtZicfilp,
                                        FeatureStdExtZvdot4a8i,
                                        FeatureStdExtZvfbfa],
-                                       SiFiveIntelligenceTuneFeatures> {
-  let ConfigurableTuneFeatures = [TuneHasSingleElementVecFP64];
-}
+                                       SiFiveIntelligenceTuneFeatures>;
 
 defvar SiFiveP400TuneFeatures = [TuneNoDefaultUnroll,
                                  TuneConditionalCompressedMoveFusion,
@@ -763,45 +761,29 @@ def TENSTORRENT_ASCALON_X : RISCVProcessorModel<"tt-ascalon-x",
                                                  TuneOptimizedNF8SegmentLoadStore,
                                                  TuneOptimizedZeroStrideLoad,
                                                  TunePostRAScheduler]>;
-
-def VENTANA_VEYRON_V1 : RISCVProcessorModel<"veyron-v1",
-                                            NoSchedModel,
-                                            [Feature64Bit,
-                                             FeatureStdExtI,
-                                             FeatureStdExtZifencei,
-                                             FeatureStdExtZicsr,
-                                             FeatureStdExtZicntr,
-                                             FeatureStdExtZihpm,
-                                             FeatureStdExtZihintpause,
-                                             FeatureStdExtM,
-                                             FeatureStdExtA,
-                                             FeatureStdExtF,
-                                             FeatureStdExtD,
-                                             FeatureStdExtC,
-                                             FeatureStdExtZba,
-                                             FeatureStdExtZbb,
-                                             FeatureStdExtZbc,
-                                             FeatureStdExtZbs,
-                                             FeatureStdExtZicbom,
-                                             FeatureStdExtZicbop,
-                                             FeatureStdExtZicboz,
-                                             FeatureVendorXVentanaCondOps],
-                                             [TuneVentanaVeyron,
-                                              TuneDisableMISchedLoadClustering,
-                                              TuneDisablePostMISchedLoadClustering,
-                                              TuneDisablePostMISchedStoreClustering,
-                                              TuneLUIADDIFusion,
-                                              TuneAUIPCADDIFusion,
-                                              TuneZExtHFusion,
-                                              TuneZExtWFusion,
-                                              TuneShiftedZExtWFusion,
-                                              TuneADDLoadFusion,
-                                              TuneAUIPCLoadFusion,
-                                              TuneLUILoadFusion]> {
-  let MVendorID = 0x61f;
-  let MArchID = 0x8000000000010000;
-  let MImpID = 0x111;
-}
+// The Tenstorrent "baby" RISC-V core found in every Tensix tile (tt-1xx /
+// Blackhole). The feature list is what the tt-metal toolchain's own GCC uses
+// for this core: `riscv-tt-elf-g++ -mcpu=tt-bh` reports
+// `-march=rv32im_zmmul_zaamo_zba_zbb` with `-mabi=ilp32` (soft float).
+//
+// Deliberately absent, matching the ISA docs:
+//   * C  -- the babies are not documented as implementing the compressed
+//           extension, and the toolchain does not enable it;
+//   * A  -- only Zaamo is implemented, not Zalrsc (no lr.w / sc.w);
+//   * F  -- `fadd.s`/`fmul.s`/`fmadd.s` exist but the ABI is soft-float, and
+//           `fdiv.s`/`fsqrt.s` do not exist at all.
+// Pass -mattr=+c (or others) explicitly if a particular kernel needs them.
+def TENSTORRENT_BABY_BH : RISCVProcessorModel<"tt-bh",
+                                               TensixBabyModel,
+                                               [Feature32Bit,
+                                                FeatureStdExtI,
+                                                FeatureStdExtM,
+                                                FeatureStdExtZmmul,
+                                                FeatureStdExtZaamo,
+                                                FeatureStdExtZicsr,
+                                                FeatureStdExtZifencei,
+                                                FeatureStdExtZba,
+                                                FeatureStdExtZbb]>;
 
 def XIANGSHAN_NANHU : RISCVProcessorModel<"xiangshan-nanhu",
                                           XiangShanNanHuModel,
@@ -1017,7 +999,8 @@ def ANDES_N45 : RISCVProcessorModel<"andes-n45",
                                      FeatureStdExtF,
                                      FeatureStdExtD,
                                      FeatureStdExtC,
-                                     FeatureVendorXAndesPerf],
+                                     FeatureVendorXAndesPerf,
+                                     FeatureUnalignedScalarMem],
                                     Andes45TuneFeatures>;
 
 def ANDES_NX45 : RISCVProcessorModel<"andes-nx45",
@@ -1031,7 +1014,8 @@ def ANDES_NX45 : RISCVProcessorModel<"andes-nx45",
                                       FeatureStdExtF,
                                       FeatureStdExtD,
                                       FeatureStdExtC,
-                                      FeatureVendorXAndesPerf],
+                                      FeatureVendorXAndesPerf,
+                                      FeatureUnalignedScalarMem],
                                      Andes45TuneFeatures>;
 
 def ANDES_A45 : RISCVProcessorModel<"andes-a45",
@@ -1045,7 +1029,8 @@ def ANDES_A45 : RISCVProcessorModel<"andes-a45",
                                      FeatureStdExtF,
                                      FeatureStdExtD,
                                      FeatureStdExtC,
-                                     FeatureVendorXAndesPerf],
+                                     FeatureVendorXAndesPerf,
+                                     FeatureUnalignedScalarMem],
                                     Andes45TuneFeatures>;
 
 def ANDES_AX45 : RISCVProcessorModel<"andes-ax45",
@@ -1059,7 +1044,8 @@ def ANDES_AX45 : RISCVProcessorModel<"andes-ax45",
                                       FeatureStdExtF,
                                       FeatureStdExtD,
                                       FeatureStdExtC,
-                                      FeatureVendorXAndesPerf],
+                                      FeatureVendorXAndesPerf,
+                                      FeatureUnalignedScalarMem],
                                      Andes45TuneFeatures>;
 
 def ANDES_AX45MPV : RISCVProcessorModel<"andes-ax45mpv",
@@ -1074,7 +1060,8 @@ def ANDES_AX45MPV : RISCVProcessorModel<"andes-ax45mpv",
                                          FeatureStdExtD,
                                          FeatureStdExtC,
                                          FeatureStdExtV,
-                                         FeatureVendorXAndesPerf],
+                                         FeatureVendorXAndesPerf,
+                                         FeatureUnalignedScalarMem],
                                         Andes45TuneFeatures>;
 
 def ESPERANTO_SOC1 : RISCVProcessorModel<"et-soc1",
